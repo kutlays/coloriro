@@ -1,16 +1,40 @@
-# React + Vite
+# coloriro
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Colour combinations for getting dressed, organised by season.
 
-Currently, two official plugins are available:
+Twenty-four palettes, each shown three ways: as a proportion bar, as copyable hex
+swatches, and worn — one men's and one women's outfit per palette.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Season here means time of year, not skin tone.** This is not personal colour
+analysis.
 
-## React Compiler
+## Why
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Most colour tools give you a wheel and a set of harmonies. Wheels are a poor guide
+to clothing — complementary pairs that look correct on a wheel often look wrong on
+a body. The palettes here are picked the way a dyer or a tailor would pick them:
+empirically, from combinations that are already known to work. Proportion is
+treated as part of the combination rather than an afterthought, since four colours
+at 25/25/25/25 rarely work no matter which four they are.
 
-## Expanding the Oxlint configuration
+Inspired in format by Sanzo Wada's *Dictionary of Color Combinations* (1933). The
+palettes are not his.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Stack
+
+Vite + React. No backend, no dependencies beyond React itself. Deployed as static
+files.
+
+```bash
+npm install
+npm run dev      # local dev server
+npm run build    # production build to dist/
+```
+
+## Status
+
+An experiment. Built to learn the full build-and-ship loop end to end.
+
+## Licence
+
+MIT
