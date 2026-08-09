@@ -1,4 +1,4 @@
-import React from "react";
+import { useId } from "react";
 
 /**
  * Editorial fashion figure for Coloriro.
@@ -67,14 +67,16 @@ function Figure({ colors = [], roles, kind = "women", variant = 0 }) {
   const accent = getHex(colors, accentI, "#A75A42");
   const shoes = getHex(colors, shoesI, "#282522");
 
-  const id = `fig-${kind}-${variant}-${outerI}-${topI}-${bottomI}-${shoesI}`;
+  const instanceId = useId().replace(/:/g, "");
+  const id = `fig-${instanceId}-${kind}-${variant}-${outerI}-${topI}-${bottomI}-${shoesI}`;
   const darkOuter = shade(outer, -0.18);
   const darkBottom = shade(bottom, -0.16);
   const skin = "#D7AE91";
   const skinShadow = "#B9856B";
-  const hair = kind === "women" ? "#282522" : "#302B27";
-
   const woman = kind === "women";
+  const faceLine = "#4A342C";
+  const lip = woman ? "#8D554E" : "#704A42";
+  const hair = woman ? "#282522" : "#302B27";
 
   return (
     <svg
@@ -114,7 +116,9 @@ function Figure({ colors = [], roles, kind = "women", variant = 0 }) {
         filter={`url(#${id}-shadow)`}
       />
 
-      {/* Head */}
+      {/* Head and face */}
+      <ellipse cx="129" cy="83" rx="5" ry="9" fill={skinShadow} opacity=".72" />
+      <ellipse cx="191" cy="83" rx="5" ry="9" fill={skinShadow} opacity=".72" />
       <ellipse cx="160" cy="82" rx={woman ? 29 : 31} ry="35" fill={skin} />
       <path
         d={woman
@@ -130,7 +134,18 @@ function Figure({ colors = [], roles, kind = "women", variant = 0 }) {
           fill={hair}
         />
       )}
-      <path d="M153 84 Q160 87 167 84" stroke={skinShadow} strokeWidth="2" fill="none" opacity=".65" />
+      <path d="M143 72 Q150 68 156 72" stroke={faceLine} strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M164 72 Q171 68 178 72" stroke={faceLine} strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d={woman ? "M144 78 Q150 75 156 78" : "M144 78 Q150 74 156 78"} stroke={faceLine} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d={woman ? "M164 78 Q171 75 177 78" : "M164 78 Q171 74 177 78"} stroke={faceLine} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <ellipse cx="150" cy="78.5" rx="2.2" ry="2.8" fill={faceLine} />
+      <ellipse cx="171" cy="78.5" rx="2.2" ry="2.8" fill={faceLine} />
+      <circle cx="150.7" cy="77.7" r=".65" fill="#FFF8EE" />
+      <circle cx="171.7" cy="77.7" r=".65" fill="#FFF8EE" />
+      <path d="M160 80 Q157 89 160 91 Q163 91 165 89" stroke={skinShadow} strokeWidth="1.35" fill="none" strokeLinecap="round" />
+      <path d={woman ? "M153 98 Q160 102 168 97 Q160 108 153 98Z" : "M153 98 Q160 102 168 98"} stroke={lip} strokeWidth="1.5" fill={woman ? lip : "none"} fillOpacity=".72" strokeLinecap="round" />
+      <ellipse cx="142" cy="91" rx="6" ry="3" fill="#C77F72" opacity=".13" />
+      <ellipse cx="179" cy="91" rx="6" ry="3" fill="#C77F72" opacity=".13" />
 
       {/* Neck */}
       <path d="M149 107 L149 130 Q160 137 171 130 L171 106" fill={skin} />

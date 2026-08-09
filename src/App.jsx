@@ -1,11 +1,32 @@
 import { useState, useEffect } from "react";
 import { PALETTES, SEASONS } from "./palettes";
 import EditorialFigure from "./EditorialFigure";
+import { LOOKS } from "./looks";
 
 const PAGE = 24;
 
+function seasonForDate(date) {
+  const month = date.getUTCMonth();
+  if (month >= 2 && month <= 4) return "spring";
+  if (month >= 5 && month <= 7) return "summer";
+  if (month >= 8 && month <= 10) return "autumn";
+  return "winter";
+}
+
+function dailyCombination(date = new Date()) {
+  const season = seasonForDate(date);
+  const list = PALETTES.filter((p) => p.season === season);
+  const day = Math.floor(Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  ) / 86400000);
+  return { season, palette: list[day % list.length] };
+}
+
 function PaletteCard({ p, onCopy, copied }) {
   const w = p.weights;
+  const look = LOOKS[p.plate];
   return (
     <article className="wada-card">
       <div className="card-index">
@@ -13,15 +34,21 @@ function PaletteCard({ p, onCopy, copied }) {
         <strong>{String(p.plate).padStart(3, "0")}</strong>
       </div>
 
-      <div className="card-visuals">
-        <div className="figure-panel">
-          <EditorialFigure colors={p.colors} roles={p.men} kind="men" variant={p.variant} />
-          <span className="figure-label">TROUSERS</span>
-        </div>
-        <div className="figure-panel">
-          <EditorialFigure colors={p.colors} roles={p.women} kind="women" variant={p.variant} />
-          <span className="figure-label">SKIRT</span>
-        </div>
+      <div className={`card-visuals ${look?.pair ? "has-photo" : ""}`}>
+        {look?.pair ? (
+          <img className="pair-photo" src={look.pair} alt={look.alt} loading="lazy" />
+        ) : (
+          <>
+            <div className="figure-panel">
+              <EditorialFigure colors={p.colors} roles={p.men} kind="men" variant={p.variant} />
+              <span className="figure-label">TROUSERS</span>
+            </div>
+            <div className="figure-panel">
+              <EditorialFigure colors={p.colors} roles={p.women} kind="women" variant={p.variant} />
+              <span className="figure-label">SKIRT</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="card-info">
@@ -97,6 +124,8 @@ export default function App() {
   const list = PALETTES.filter((p) => p.season === season);
   const visible = list.slice(0, shown);
   const current = SEASONS.find((s) => s.id === season);
+  const today = dailyCombination();
+  const todaySeason = SEASONS.find((s) => s.id === today.season);
 
   return (
     <div className="coloriro-app">
@@ -182,6 +211,12 @@ export default function App() {
         .book-copy strong { display: block; color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 10px; }
 
         .palette-area { padding: 36px clamp(22px, 3vw, 48px) 60px; }
+        .today-section { margin-bottom: 48px; padding-bottom: 48px; border-bottom: 1px solid var(--line); }
+        .today-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+        .today-kicker { margin: 0 0 7px; color: var(--accent); font-size: 8px; letter-spacing: .2em; text-transform: uppercase; }
+        .today-title { margin: 0; font: 31px 'Playfair Display', Georgia, serif; font-weight: 400; }
+        .today-note { max-width: 310px; margin: 0; color: var(--muted); font: 12px/1.6 Georgia, serif; text-align: right; }
+        .today-card { max-width: 760px; }
         .catalog-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
         .catalog-count { font-family: 'Playfair Display', Georgia, serif; font-size: 23px; }
         .catalog-count span { font: 10px 'DM Sans', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
@@ -194,6 +229,8 @@ export default function App() {
         .card-index span { font-size: 8px; letter-spacing: .2em; }
         .card-index strong { font: 25px 'Playfair Display', Georgia, serif; font-weight: 400; }
         .card-visuals { display: grid; grid-template-columns: 1fr 1fr; height: 300px; background: #d7d1c7; }
+        .card-visuals.has-photo { height: auto; aspect-ratio: 4 / 3; }
+        .pair-photo { display: block; grid-column: 1 / -1; width: 100%; height: 100%; object-fit: cover; object-position: center 38%; }
         .figure-panel { position: relative; min-width: 0; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; background: linear-gradient(145deg, #ddd8cf, #c9c4bb); }
         .figure-panel + .figure-panel { border-left: 1px solid rgba(38,34,29,.1); background: linear-gradient(145deg, #d2ccc1, #e2ddd4); }
         .figure-panel > *:first-child { width: 100%; height: 100%; }
@@ -241,6 +278,8 @@ export default function App() {
           .hero-art { min-height: 250px; }
           .grid { grid-template-columns: 1fr; }
           .card-visuals { height: 290px; }
+          .today-head { align-items: start; flex-direction: column; gap: 9px; }
+          .today-note { text-align: left; }
         }
         @media (max-width: 480px) {
           .brand-tag { display: none; }
@@ -262,6 +301,7 @@ export default function App() {
         </div>
         <nav className="header-links" aria-label="Primary">
           <a href="#wada">Wada Sanzo</a>
+          <a href="#today">Today's Pick</a>
           <a href="#book">The Book</a>
           <a href="#about">About</a>
         </nav>
@@ -314,6 +354,22 @@ export default function App() {
         </aside>
 
         <section className="palette-area">
+          <section className="today-section" id="today" aria-labelledby="today-title">
+            <div className="today-head">
+              <div>
+                <p className="today-kicker">A daily colour suggestion</p>
+                <h2 className="today-title" id="today-title">Today's Combination</h2>
+              </div>
+              <p className="today-note">
+                One {todaySeason?.label.toLowerCase()} combination, selected for this date.
+                It stays here all day and changes at midnight UTC.
+              </p>
+            </div>
+            <div className="today-card">
+              <PaletteCard p={today.palette} onCopy={copy} copied={copied} />
+            </div>
+          </section>
+
           <div className="catalog-head">
             <div className="catalog-count">
               {list.length} combinations <span>· {current?.label}</span>
