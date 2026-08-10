@@ -15,7 +15,9 @@ function seasonForDate(date) {
 
 function dailyCombination(date = new Date()) {
   const season = seasonForDate(date);
-  const list = PALETTES.filter((p) => p.season === season);
+  // Keep the daily feature inside the finished photographic campaign.
+  // Illustrated fallback cards remain available in the full catalogue only.
+  const list = PALETTES.filter((p) => p.season === season && LOOKS[p.plate]?.pair);
   const day = Math.floor(Date.UTC(
     date.getUTCFullYear(),
     date.getUTCMonth(),
