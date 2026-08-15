@@ -123,6 +123,11 @@ export const LOOKS = {
   39: { pair: "/looks/plate-039.jpg", alt: "Two models wearing the Helvetia Blue and Carmine combination" },
   40: {
     pair: "/looks/plate-040.jpg",
+    variants: [
+      "/looks/plate-040.jpg",
+      "/looks/plate-040-v2.jpg",
+      "/looks/plate-040-v3.jpg",
+    ],
     alt: "Two models wearing the Vinaceous Tawny and Citron Yellow combination",
   },
   41: { pair: "/looks/plate-041.jpg", alt: "Two models wearing the Dark Citrine and Calamine Blue combination" },
@@ -131,6 +136,11 @@ export const LOOKS = {
   44: { pair: "/looks/plate-044.jpg", alt: "Two models wearing the Olympic Blue and Light Porcelain Green combination" },
   45: {
     pair: "/looks/plate-045.jpg",
+    variants: [
+      "/looks/plate-045.jpg",
+      "/looks/plate-045-v2.jpg",
+      "/looks/plate-045-v3.jpg",
+    ],
     alt: "Two models wearing the Seashell Pink and Lemon Yellow combination",
   },
   46: { pair: "/looks/plate-046.jpg", alt: "Two models wearing the Black and Orange combination" },
