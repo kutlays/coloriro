@@ -106,6 +106,100 @@ function PaletteCard({ p, onCopy, copied, image }) {
   );
 }
 
+function HeritagePage() {
+  return (
+    <>
+      <header className="site-header">
+        <div className="brand">
+          <a className="brand-name brand-link" href="/">COLORIRO</a>
+          <div className="brand-tag">Colour combinations<br />for getting dressed</div>
+        </div>
+        <nav className="header-links" aria-label="History page">
+          <a href="/">Palettes</a>
+          <a href="/#today">Today&apos;s Pick</a>
+          <a href="/#book">The Book</a>
+          <a href="/#about">About</a>
+        </nav>
+      </header>
+
+      <main className="heritage-page">
+        <section className="heritage" aria-labelledby="heritage-title">
+          <div className="heritage-inner">
+            <a className="heritage-back" href="/">← Back to the colour combinations</a>
+            <div className="heritage-lead">
+              <div>
+                <p className="heritage-kicker">The source · 和田三造</p>
+                <h1 className="heritage-title" id="heritage-title">
+                  A painter who made colour practical.
+                </h1>
+                <p className="heritage-copy">
+                  Sanzo Wada (1883–1967) worked across painting, teaching, fashion, kimono,
+                  theatre and film. His colour research treated combinations as a usable
+                  design language. Published in 1933–34, <em>Haishoku Sōkan</em> gathered
+                  the 348 combinations that form Coloriro&apos;s foundation.
+                </p>
+              </div>
+              <div className="heritage-study" aria-hidden="true">
+                <p className="heritage-study-label">A study in relationship</p>
+                <div className="heritage-bars">
+                  <span className="heritage-bar" />
+                  <span className="heritage-bar" />
+                  <span className="heritage-bar" />
+                  <span className="heritage-bar" />
+                </div>
+                <div className="heritage-study-note">
+                  <span>Colour · proportion · rhythm</span>
+                  <span>昭和八年</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="heritage-timeline" aria-label="Sanzo Wada timeline">
+              <article className="heritage-moment">
+                <span className="heritage-year">1883</span>
+                <h2>An interdisciplinary eye</h2>
+                <p>Wada was born in Japan and developed a practice spanning fine art, clothing, stage and screen.</p>
+              </article>
+              <article className="heritage-moment">
+                <span className="heritage-year">1927</span>
+                <h2>Colour as shared knowledge</h2>
+                <p>He founded the Japan Standard Color Association, now the Japan Color Research Institute.</p>
+              </article>
+              <article className="heritage-moment">
+                <span className="heritage-year">1933–34</span>
+                <h2><em>Haishoku Sōkan</em></h2>
+                <p>Wada published a pioneering Japanese collection of colour combinations: the source of these 348 plates.</p>
+              </article>
+              <article className="heritage-moment">
+                <span className="heritage-year">1954–58</span>
+                <h2>International recognition</h2>
+                <p>His costume work for <em>Gate of Hell</em> won an Academy Award; Japan later named him a Person of Cultural Merit.</p>
+              </article>
+            </div>
+
+            <div className="heritage-credit">
+              <div className="heritage-credit-block">
+                <h2>What belongs to Wada</h2>
+                <p>The original colour relationships, historic colour names and the 348 combinations themselves.</p>
+              </div>
+              <div className="heritage-credit-block">
+                <h2>What Coloriro adds</h2>
+                <p>Outfit photography, garment placement, suggested proportions, seasonal organization and the daily rotation. Digital HEX values approximate printed colour.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <strong>Coloriro presents Sanzo Wada&apos;s combinations as contemporary wardrobe studies.</strong>
+        <br />
+        <a href="/">Return to all 348 colour combinations</a>
+      </footer>
+    </>
+  );
+}
+
 export default function App() {
   const [season, setSeason] = useState("summer");
   const [copied, setCopied] = useState(null);
@@ -189,6 +283,7 @@ export default function App() {
         }
         .brand { display: flex; align-items: baseline; gap: 28px; }
         .brand-name { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(28px, 3vw, 42px); letter-spacing: .18em; line-height: 1; }
+        .brand-link { color: inherit; text-decoration: none; }
         .brand-tag { max-width: 170px; font-size: 10px; line-height: 1.5; letter-spacing: .16em; text-transform: uppercase; }
         .header-links { display: flex; gap: 28px; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
         .header-links a { color: inherit; text-decoration: none; }
@@ -225,6 +320,9 @@ export default function App() {
 
         .heritage { border-bottom: 1px solid var(--line); background: rgba(232,223,208,.45); scroll-margin-top: 88px; }
         .heritage-inner { max-width: 1400px; margin: 0 auto; padding: clamp(54px, 7vw, 96px) clamp(24px, 6vw, 90px); }
+        .heritage-page .heritage { min-height: calc(100vh - 90px); border-bottom: 0; }
+        .heritage-back { display: inline-block; margin-bottom: clamp(38px, 6vw, 72px); color: var(--muted); font-size: 9px; letter-spacing: .15em; text-decoration: none; text-transform: uppercase; }
+        .heritage-back:hover { color: var(--accent); }
         .heritage-lead { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); gap: clamp(42px, 7vw, 100px); align-items: center; }
         .heritage-kicker { margin: 0 0 14px; color: var(--accent); font-size: 9px; letter-spacing: .22em; text-transform: uppercase; }
         .heritage-title { max-width: 780px; margin: 0; font: clamp(36px, 4.6vw, 64px)/1.04 'Playfair Display', Georgia, serif; font-weight: 400; letter-spacing: -.02em; }
@@ -243,12 +341,12 @@ export default function App() {
         .heritage-timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: clamp(45px, 6vw, 76px); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
         .heritage-moment { min-height: 190px; padding: 24px 22px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
         .heritage-year { display: block; margin-bottom: 18px; color: var(--accent); font: 24px 'Playfair Display', Georgia, serif; }
-        .heritage-moment h3 { margin: 0 0 10px; font: 16px 'Playfair Display', Georgia, serif; font-weight: 500; }
+        .heritage-moment h2 { margin: 0 0 10px; font: 16px 'Playfair Display', Georgia, serif; font-weight: 500; }
         .heritage-moment p { margin: 0; color: var(--muted); font: 12px/1.65 Georgia, serif; }
         .heritage-credit { display: grid; grid-template-columns: 1fr 1fr; margin-top: 34px; border: 1px solid var(--line); background: rgba(243,238,228,.55); }
         .heritage-credit-block { padding: 25px 28px; }
         .heritage-credit-block + .heritage-credit-block { border-left: 1px solid var(--line); }
-        .heritage-credit h3 { margin: 0 0 10px; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
+        .heritage-credit h2 { margin: 0 0 10px; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
         .heritage-credit p { margin: 0; color: var(--muted); font: 13px/1.65 Georgia, serif; }
 
         .catalog { display: grid; grid-template-columns: 210px 1fr; max-width: 1600px; margin: 0 auto; }
@@ -364,13 +462,17 @@ export default function App() {
         }
       `}</style>
 
+      {window.location.pathname === "/history" ? (
+        <HeritagePage />
+      ) : (
+        <>
       <header className="site-header">
         <div className="brand">
           <div className="brand-name">COLORIRO</div>
           <div className="brand-tag">Colour combinations<br />for getting dressed</div>
         </div>
         <nav className="header-links" aria-label="Primary">
-          <a href="#heritage">Wada Sanzo</a>
+          <a href="/history">Wada Sanzo</a>
           <a href="#today">Today's Pick</a>
           <a href="#book">The Book</a>
           <a href="#about">About</a>
@@ -393,72 +495,6 @@ export default function App() {
           </div>
         </div>
         <div className="hero-art" aria-hidden="true" />
-      </section>
-
-      <section className="heritage" id="heritage" aria-labelledby="heritage-title">
-        <div className="heritage-inner">
-          <div className="heritage-lead">
-            <div>
-              <p className="heritage-kicker">The source · 和田三造</p>
-              <h2 className="heritage-title" id="heritage-title">
-                A painter who made colour practical.
-              </h2>
-              <p className="heritage-copy">
-                Sanzo Wada (1883–1967) worked across painting, teaching, fashion, kimono,
-                theatre and film. His colour research treated combinations as a usable
-                design language. Published in 1933–34, <em>Haishoku Sōkan</em> gathered
-                the 348 combinations that form Coloriro&apos;s foundation.
-              </p>
-            </div>
-            <div className="heritage-study" aria-hidden="true">
-              <p className="heritage-study-label">A study in relationship</p>
-              <div className="heritage-bars">
-                <span className="heritage-bar" />
-                <span className="heritage-bar" />
-                <span className="heritage-bar" />
-                <span className="heritage-bar" />
-              </div>
-              <div className="heritage-study-note">
-                <span>Colour · proportion · rhythm</span>
-                <span>昭和八年</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="heritage-timeline" aria-label="Sanzo Wada timeline">
-            <article className="heritage-moment">
-              <span className="heritage-year">1883</span>
-              <h3>An interdisciplinary eye</h3>
-              <p>Wada was born in Japan and developed a practice spanning fine art, clothing, stage and screen.</p>
-            </article>
-            <article className="heritage-moment">
-              <span className="heritage-year">1927</span>
-              <h3>Colour as shared knowledge</h3>
-              <p>He founded the Japan Standard Color Association, now the Japan Color Research Institute.</p>
-            </article>
-            <article className="heritage-moment">
-              <span className="heritage-year">1933–34</span>
-              <h3><em>Haishoku Sōkan</em></h3>
-              <p>Wada published a pioneering Japanese collection of colour combinations: the source of these 348 plates.</p>
-            </article>
-            <article className="heritage-moment">
-              <span className="heritage-year">1954–58</span>
-              <h3>International recognition</h3>
-              <p>His costume work for <em>Gate of Hell</em> won an Academy Award; Japan later named him a Person of Cultural Merit.</p>
-            </article>
-          </div>
-
-          <div className="heritage-credit">
-            <div className="heritage-credit-block">
-              <h3>What belongs to Wada</h3>
-              <p>The original colour relationships, historic colour names and the 348 combinations themselves.</p>
-            </div>
-            <div className="heritage-credit-block">
-              <h3>What Coloriro adds</h3>
-              <p>Outfit photography, garment placement, suggested proportions, seasonal organization and the daily rotation. Digital HEX values approximate printed colour.</p>
-            </div>
-          </div>
-        </div>
       </section>
 
       <main className="catalog" id="book">
@@ -567,6 +603,8 @@ export default function App() {
         <br />
         Garment roles, proportions and season grouping are ours, not Wada's.
       </footer>
+        </>
+      )}
     </div>
   );
 }
