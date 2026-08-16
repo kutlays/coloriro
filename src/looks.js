@@ -177,10 +177,20 @@ export const LOOKS = {
   83: { pair: "/looks/plate-083.jpg", alt: "Two models wearing the Violet Blue and Olive Buff combination" },
   59: {
     pair: "/looks/plate-059.jpg",
+    variants: [
+      "/looks/plate-059.jpg",
+      "/looks/plate-059-v2.jpg",
+      "/looks/plate-059-v3.jpg",
+    ],
     alt: "Two models wearing the Citrine and Eosine Pink combination",
   },
   65: {
     pair: "/looks/plate-065.jpg",
+    variants: [
+      "/looks/plate-065.jpg",
+      "/looks/plate-065-v2.jpg",
+      "/looks/plate-065-v3.jpg",
+    ],
     alt: "Two models wearing the Sulphine Yellow and Calamine Blue combination",
   },
   66: {

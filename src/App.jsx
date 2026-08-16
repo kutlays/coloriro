@@ -4,6 +4,10 @@ import EditorialFigure from "./EditorialFigure";
 import { LOOKS } from "./looks";
 
 const PAGE = 24;
+// Freeze the daily rotation to the first completed photo campaign. Adding new
+// look assets must not reshuffle the recommendation while a date is in progress.
+const DAILY_CAMPAIGN_MAX_PLATE = 140;
+const DAILY_CAMPAIGN_EXTRA_PLATES = new Set([222]);
 
 function seasonForDate(date) {
   const month = date.getUTCMonth();
@@ -15,9 +19,11 @@ function seasonForDate(date) {
 
 function dailyCombination(date = new Date()) {
   const season = seasonForDate(date);
-  // Keep the daily feature inside the finished photographic campaign.
-  // Illustrated fallback cards remain available in the full catalogue only.
-  const list = PALETTES.filter((p) => p.season === season && LOOKS[p.plate]?.pair);
+  const list = PALETTES.filter((p) => (
+    p.season === season
+    && (p.plate <= DAILY_CAMPAIGN_MAX_PLATE || DAILY_CAMPAIGN_EXTRA_PLATES.has(p.plate))
+    && LOOKS[p.plate]?.pair
+  ));
   const day = Math.floor(Date.UTC(
     date.getUTCFullYear(),
     date.getUTCMonth(),
@@ -26,9 +32,10 @@ function dailyCombination(date = new Date()) {
   return { season, palette: list[day % list.length] };
 }
 
-function PaletteCard({ p, onCopy, copied }) {
+function PaletteCard({ p, onCopy, copied, image }) {
   const w = p.weights;
   const look = LOOKS[p.plate];
+  const photo = image || look?.pair;
   return (
     <article className="wada-card">
       <div className="card-index">
@@ -36,9 +43,9 @@ function PaletteCard({ p, onCopy, copied }) {
         <strong>{String(p.plate).padStart(3, "0")}</strong>
       </div>
 
-      <div className={`card-visuals ${look?.pair ? "has-photo" : ""}`}>
-        {look?.pair ? (
-          <img className="pair-photo" src={look.pair} alt={look.alt} loading="lazy" />
+      <div className={`card-visuals ${photo ? "has-photo" : ""}`}>
+        {photo ? (
+          <img className="pair-photo" src={photo} alt={look?.alt || p.name} loading="lazy" />
         ) : (
           <>
             <div className="figure-panel">
@@ -103,6 +110,11 @@ export default function App() {
   const [season, setSeason] = useState("summer");
   const [copied, setCopied] = useState(null);
   const [shown, setShown] = useState(PAGE);
+  const [todayLookIndex, setTodayLookIndex] = useState(0);
+  const today = dailyCombination();
+  const todayLook = LOOKS[today.palette.plate];
+  const todayLookOptions = todayLook?.variants || [todayLook?.pair].filter(Boolean);
+  const todayLookImage = todayLookOptions[todayLookIndex] || todayLook?.pair;
 
   useEffect(() => {
     if (!copied) return;
@@ -114,6 +126,10 @@ export default function App() {
     setShown(PAGE);
   }, [season]);
 
+  useEffect(() => {
+    setTodayLookIndex(0);
+  }, [today.palette.plate]);
+
   const copy = async (hex) => {
     try {
       await navigator.clipboard.writeText(hex);
@@ -123,10 +139,17 @@ export default function App() {
     setCopied(hex);
   };
 
+  const randomiseTodayLook = () => {
+    if (todayLookOptions.length < 2) return;
+    setTodayLookIndex((current) => {
+      const candidate = Math.floor(Math.random() * (todayLookOptions.length - 1));
+      return candidate >= current ? candidate + 1 : candidate;
+    });
+  };
+
   const list = PALETTES.filter((p) => p.season === season);
   const visible = list.slice(0, shown);
   const current = SEASONS.find((s) => s.id === season);
-  const today = dailyCombination();
   const todaySeason = SEASONS.find((s) => s.id === today.season);
 
   return (
@@ -200,6 +223,34 @@ export default function App() {
           transform: rotate(-2deg);
         }
 
+        .heritage { border-bottom: 1px solid var(--line); background: rgba(232,223,208,.45); scroll-margin-top: 88px; }
+        .heritage-inner { max-width: 1400px; margin: 0 auto; padding: clamp(54px, 7vw, 96px) clamp(24px, 6vw, 90px); }
+        .heritage-lead { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); gap: clamp(42px, 7vw, 100px); align-items: center; }
+        .heritage-kicker { margin: 0 0 14px; color: var(--accent); font-size: 9px; letter-spacing: .22em; text-transform: uppercase; }
+        .heritage-title { max-width: 780px; margin: 0; font: clamp(36px, 4.6vw, 64px)/1.04 'Playfair Display', Georgia, serif; font-weight: 400; letter-spacing: -.02em; }
+        .heritage-copy { max-width: 700px; margin: 24px 0 0; color: #4c463e; font: 16px/1.75 Georgia, serif; }
+        .heritage-copy em { color: var(--ink); }
+        .heritage-study { position: relative; min-height: 280px; padding: 28px; border: 1px solid var(--line); background: #e7dece; overflow: hidden; }
+        .heritage-study::after { content: '配色総鑑'; position: absolute; right: 23px; top: 22px; color: rgba(38,34,29,.35); font: 13px Georgia, serif; letter-spacing: .2em; writing-mode: vertical-rl; }
+        .heritage-study-label { margin: 0 0 24px; color: var(--muted); font-size: 8px; letter-spacing: .2em; text-transform: uppercase; }
+        .heritage-bars { display: grid; height: 154px; grid-template-columns: 38fr 24fr 21fr 17fr; align-items: end; gap: 8px; padding-right: 40px; }
+        .heritage-bar { min-height: 58px; border: 1px solid rgba(38,34,29,.12); }
+        .heritage-bar:nth-child(1) { height: 100%; background: #1c4286; }
+        .heritage-bar:nth-child(2) { height: 74%; background: #dd4027; }
+        .heritage-bar:nth-child(3) { height: 88%; background: #b2b73e; }
+        .heritage-bar:nth-child(4) { height: 58%; background: #f8b6ba; }
+        .heritage-study-note { display: flex; justify-content: space-between; gap: 18px; margin-top: 14px; color: var(--muted); font-size: 8px; letter-spacing: .13em; text-transform: uppercase; }
+        .heritage-timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: clamp(45px, 6vw, 76px); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+        .heritage-moment { min-height: 190px; padding: 24px 22px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+        .heritage-year { display: block; margin-bottom: 18px; color: var(--accent); font: 24px 'Playfair Display', Georgia, serif; }
+        .heritage-moment h3 { margin: 0 0 10px; font: 16px 'Playfair Display', Georgia, serif; font-weight: 500; }
+        .heritage-moment p { margin: 0; color: var(--muted); font: 12px/1.65 Georgia, serif; }
+        .heritage-credit { display: grid; grid-template-columns: 1fr 1fr; margin-top: 34px; border: 1px solid var(--line); background: rgba(243,238,228,.55); }
+        .heritage-credit-block { padding: 25px 28px; }
+        .heritage-credit-block + .heritage-credit-block { border-left: 1px solid var(--line); }
+        .heritage-credit h3 { margin: 0 0 10px; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
+        .heritage-credit p { margin: 0; color: var(--muted); font: 13px/1.65 Georgia, serif; }
+
         .catalog { display: grid; grid-template-columns: 210px 1fr; max-width: 1600px; margin: 0 auto; }
         .season-nav { border-right: 1px solid var(--line); padding: 40px 28px; }
         .season-title { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 30px; }
@@ -219,6 +270,12 @@ export default function App() {
         .today-title { margin: 0; font: 31px 'Playfair Display', Georgia, serif; font-weight: 400; }
         .today-note { max-width: 310px; margin: 0; color: var(--muted); font: 12px/1.6 Georgia, serif; text-align: right; }
         .today-card { max-width: 760px; }
+        .today-look-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 12px; padding: 14px 16px; border: 1px solid rgba(38,34,29,.12); background: rgba(255,255,255,.22); }
+        .today-look-kicker { margin: 0 0 4px; color: var(--accent); font-size: 8px; letter-spacing: .18em; text-transform: uppercase; }
+        .today-look-note { margin: 0; color: var(--muted); font: 12px/1.45 Georgia, serif; }
+        .today-look-button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 10px 14px; cursor: pointer; font: 9px 'DM Sans', sans-serif; letter-spacing: .12em; text-transform: uppercase; transition: background .2s ease, color .2s ease; }
+        .today-look-button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+        .today-look-button:disabled { cursor: default; opacity: .45; }
         .catalog-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
         .catalog-count { font-family: 'Playfair Display', Georgia, serif; font-size: 23px; }
         .catalog-count span { font: 10px 'DM Sans', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
@@ -267,6 +324,9 @@ export default function App() {
         .site-footer a { color: inherit; }
 
         @media (max-width: 1000px) {
+          .heritage-lead { grid-template-columns: 1fr; }
+          .heritage-study { max-width: 650px; }
+          .heritage-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .catalog { grid-template-columns: 1fr; }
           .season-nav { border-right: 0; border-bottom: 1px solid var(--line); padding: 18px 22px; display: flex; gap: 8px; overflow-x: auto; align-items: center; }
           .season-title, .season-rule, .book-copy { display: none; }
@@ -282,6 +342,8 @@ export default function App() {
           .card-visuals { height: 290px; }
           .today-head { align-items: start; flex-direction: column; gap: 9px; }
           .today-note { text-align: left; }
+          .heritage-credit { grid-template-columns: 1fr; }
+          .heritage-credit-block + .heritage-credit-block { border-left: 0; border-top: 1px solid var(--line); }
         }
         @media (max-width: 480px) {
           .brand-tag { display: none; }
@@ -289,6 +351,12 @@ export default function App() {
           .card-visuals { height: 250px; }
           .card-footer { flex-wrap: wrap; }
           .copy-hint { width: 100%; margin-left: 0; }
+          .today-look-controls { align-items: stretch; flex-direction: column; }
+          .today-look-button { width: 100%; }
+          .heritage-timeline { grid-template-columns: 1fr; }
+          .heritage-moment { min-height: 0; }
+          .heritage-study { min-height: 240px; padding: 22px; }
+          .heritage-bars { height: 130px; padding-right: 30px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .wada-card { transition: none; }
@@ -302,7 +370,7 @@ export default function App() {
           <div className="brand-tag">Colour combinations<br />for getting dressed</div>
         </div>
         <nav className="header-links" aria-label="Primary">
-          <a href="#wada">Wada Sanzo</a>
+          <a href="#heritage">Wada Sanzo</a>
           <a href="#today">Today's Pick</a>
           <a href="#book">The Book</a>
           <a href="#about">About</a>
@@ -325,6 +393,72 @@ export default function App() {
           </div>
         </div>
         <div className="hero-art" aria-hidden="true" />
+      </section>
+
+      <section className="heritage" id="heritage" aria-labelledby="heritage-title">
+        <div className="heritage-inner">
+          <div className="heritage-lead">
+            <div>
+              <p className="heritage-kicker">The source · 和田三造</p>
+              <h2 className="heritage-title" id="heritage-title">
+                A painter who made colour practical.
+              </h2>
+              <p className="heritage-copy">
+                Sanzo Wada (1883–1967) worked across painting, teaching, fashion, kimono,
+                theatre and film. His colour research treated combinations as a usable
+                design language. Published in 1933–34, <em>Haishoku Sōkan</em> gathered
+                the 348 combinations that form Coloriro&apos;s foundation.
+              </p>
+            </div>
+            <div className="heritage-study" aria-hidden="true">
+              <p className="heritage-study-label">A study in relationship</p>
+              <div className="heritage-bars">
+                <span className="heritage-bar" />
+                <span className="heritage-bar" />
+                <span className="heritage-bar" />
+                <span className="heritage-bar" />
+              </div>
+              <div className="heritage-study-note">
+                <span>Colour · proportion · rhythm</span>
+                <span>昭和八年</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="heritage-timeline" aria-label="Sanzo Wada timeline">
+            <article className="heritage-moment">
+              <span className="heritage-year">1883</span>
+              <h3>An interdisciplinary eye</h3>
+              <p>Wada was born in Japan and developed a practice spanning fine art, clothing, stage and screen.</p>
+            </article>
+            <article className="heritage-moment">
+              <span className="heritage-year">1927</span>
+              <h3>Colour as shared knowledge</h3>
+              <p>He founded the Japan Standard Color Association, now the Japan Color Research Institute.</p>
+            </article>
+            <article className="heritage-moment">
+              <span className="heritage-year">1933–34</span>
+              <h3><em>Haishoku Sōkan</em></h3>
+              <p>Wada published a pioneering Japanese collection of colour combinations: the source of these 348 plates.</p>
+            </article>
+            <article className="heritage-moment">
+              <span className="heritage-year">1954–58</span>
+              <h3>International recognition</h3>
+              <p>His costume work for <em>Gate of Hell</em> won an Academy Award; Japan later named him a Person of Cultural Merit.</p>
+            </article>
+          </div>
+
+          <div className="heritage-credit">
+            <div className="heritage-credit-block">
+              <h3>What belongs to Wada</h3>
+              <p>The original colour relationships, historic colour names and the 348 combinations themselves.</p>
+            </div>
+            <div className="heritage-credit-block">
+              <h3>What Coloriro adds</h3>
+              <p>Outfit photography, garment placement, suggested proportions, seasonal organization and the daily rotation. Digital HEX values approximate printed colour.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <main className="catalog" id="book">
@@ -368,7 +502,30 @@ export default function App() {
               </p>
             </div>
             <div className="today-card">
-              <PaletteCard p={today.palette} onCopy={copy} copied={copied} />
+              <PaletteCard
+                p={today.palette}
+                onCopy={copy}
+                copied={copied}
+                image={todayLookImage}
+              />
+              <div className="today-look-controls" aria-live="polite">
+                <div>
+                  <p className="today-look-kicker">
+                    Photographic outfit {todayLookIndex + 1} of {todayLookOptions.length}
+                  </p>
+                  <p className="today-look-note">
+                    The models change clothes; today&apos;s palette stays the same.
+                  </p>
+                </div>
+                <button
+                  className="today-look-button"
+                  type="button"
+                  onClick={randomiseTodayLook}
+                  disabled={todayLookOptions.length < 2}
+                >
+                  Try another outfit
+                </button>
+              </div>
             </div>
           </section>
 
