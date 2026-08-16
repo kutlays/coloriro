@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { PALETTES, SEASONS } from "./palettes";
 import EditorialFigure from "./EditorialFigure";
 import { LOOKS } from "./looks";
+import { palettePath, palettePlateFromPath } from "./paletteUrls";
 
 const PAGE = 24;
 // Freeze the daily rotation to the first completed photo campaign. Adding new
@@ -32,7 +33,7 @@ function dailyCombination(date = new Date()) {
   return { season, palette: list[day % list.length] };
 }
 
-function PaletteCard({ p, onCopy, copied, image }) {
+function PaletteCard({ p, onCopy, copied, image, showLink = true }) {
   const w = p.weights;
   const look = LOOKS[p.plate];
   const photo = image || look?.pair;
@@ -99,10 +100,150 @@ function PaletteCard({ p, onCopy, copied, image }) {
         <div className="card-footer">
           <span>Suggested proportion</span>
           <span className="proportion">{w.join(" / ")}</span>
-          <span className="copy-hint">CLICK A COLOUR TO COPY</span>
+          {showLink ? (
+            <a className="palette-link" href={palettePath(p)}>View palette →</a>
+          ) : (
+            <span className="copy-hint">CLICK A COLOUR TO COPY</span>
+          )}
         </div>
       </div>
     </article>
+  );
+}
+
+function setMeta(name, content, property = false) {
+  const selector = property ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+  let element = document.head.querySelector(selector);
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute(property ? "property" : "name", name);
+    document.head.appendChild(element);
+  }
+  element.setAttribute("content", content);
+}
+
+function usePageMetadata({ title, description, canonical, image }) {
+  useEffect(() => {
+    document.title = title;
+    setMeta("description", description);
+    setMeta("og:title", title, true);
+    setMeta("og:description", description, true);
+    setMeta("og:url", canonical, true);
+    setMeta("twitter:title", title);
+    setMeta("twitter:description", description);
+
+    if (image) {
+      setMeta("og:image", image, true);
+      setMeta("twitter:image", image);
+    }
+
+    let link = document.head.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.setAttribute("rel", "canonical");
+      document.head.appendChild(link);
+    }
+    link.setAttribute("href", canonical);
+  }, [title, description, canonical, image]);
+}
+
+function PalettePage({ palette, onCopy, copied }) {
+  const look = LOOKS[palette.plate];
+  const index = PALETTES.findIndex((item) => item.plate === palette.plate);
+  const previous = PALETTES[(index - 1 + PALETTES.length) % PALETTES.length];
+  const next = PALETTES[(index + 1) % PALETTES.length];
+  const related = PALETTES.filter(
+    (item) => item.season === palette.season && item.plate !== palette.plate,
+  ).slice(0, 3);
+  const colourNames = palette.colors.map((colour) => colour.name).join(", ");
+  const description = `${palette.name}: a ${palette.season} outfit colour combination from Sanzo Wada, with ${colourNames}, suggested proportions and copyable HEX values.`;
+  const canonical = `https://coloriro.com${palettePath(palette)}`;
+
+  usePageMetadata({
+    title: `${palette.name} outfit palette · Coloriro Plate ${String(palette.plate).padStart(3, "0")}`,
+    description,
+    canonical,
+    image: `https://coloriro.com${look?.pair || "/looks/plate-001.jpg"}`,
+  });
+
+  return (
+    <>
+      <header className="site-header">
+        <div className="brand">
+          <a className="brand-name brand-link" href="/">COLORIRO</a>
+          <div className="brand-tag">Colour combinations<br />for getting dressed</div>
+        </div>
+        <nav className="header-links" aria-label="Palette page">
+          <a href="/#book">All palettes</a>
+          <a href="/#today">Today&apos;s Pick</a>
+          <a href="/history">Wada Sanzo</a>
+          <a href="/#about">About</a>
+        </nav>
+      </header>
+
+      <main className="palette-page">
+        <a className="heritage-back" href="/#book">← Back to all colour combinations</a>
+        <div className="palette-page-layout">
+          <section className="palette-page-intro" aria-labelledby="palette-page-title">
+            <p className="heritage-kicker">
+              Sanzo Wada · Plate {String(palette.plate).padStart(3, "0")} · {palette.season}
+            </p>
+            <h1 id="palette-page-title">{palette.name}</h1>
+            <p>
+              A {palette.colors.length === 2 ? "two" : palette.colors.length === 3 ? "three" : "four"}-colour
+              wardrobe study using {colourNames}. Click any colour to copy its digital HEX
+              approximation, then use the suggested {palette.weights.join(" / ")} proportion as
+              a starting point for getting dressed.
+            </p>
+          </section>
+
+          <div className="palette-page-card">
+            <PaletteCard
+              p={palette}
+              onCopy={onCopy}
+              copied={copied}
+              showLink={false}
+            />
+          </div>
+        </div>
+
+        <section className="related-palettes" aria-labelledby="related-title">
+          <div className="related-head">
+            <div>
+              <p className="heritage-kicker">Continue exploring</p>
+              <h2 id="related-title">More {palette.season} combinations</h2>
+            </div>
+          </div>
+          <div className="related-grid">
+            {related.map((item) => (
+              <a className="related-card" href={palettePath(item)} key={item.plate}>
+                <span className="related-index">Plate {String(item.plate).padStart(3, "0")}</span>
+                <strong>{item.name}</strong>
+                <span className="related-strip" aria-hidden="true">
+                  {item.colors.map((colour, colourIndex) => (
+                    <i
+                      key={colour.hex}
+                      style={{ background: colour.hex, flexGrow: item.weights[colourIndex] }}
+                    />
+                  ))}
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <nav className="palette-pagination" aria-label="Adjacent palettes">
+          <a href={palettePath(previous)}>← Plate {String(previous.plate).padStart(3, "0")}</a>
+          <a href={palettePath(next)}>Plate {String(next.plate).padStart(3, "0")} →</a>
+        </nav>
+      </main>
+
+      <footer className="site-footer">
+        <strong>One of 348 historic colour combinations, made wearable by Coloriro.</strong>
+        <br />
+        <a href="/">Explore the complete collection</a>
+      </footer>
+    </>
   );
 }
 
@@ -209,6 +350,10 @@ export default function App() {
   const todayLook = LOOKS[today.palette.plate];
   const todayLookOptions = todayLook?.variants || [todayLook?.pair].filter(Boolean);
   const todayLookImage = todayLookOptions[todayLookIndex] || todayLook?.pair;
+  const palettePlate = palettePlateFromPath(window.location.pathname);
+  const palettePage = palettePlate
+    ? PALETTES.find((item) => item.plate === palettePlate)
+    : null;
 
   useEffect(() => {
     if (!copied) return;
@@ -412,6 +557,27 @@ export default function App() {
         .card-footer { display: flex; align-items: center; gap: 8px; padding-top: 13px; font-size: 8px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
         .proportion { color: var(--ink); }
         .copy-hint { margin-left: auto; opacity: .65; }
+        .palette-link { margin-left: auto; color: var(--accent); text-decoration: none; }
+        .palette-link:hover { text-decoration: underline; }
+
+        .palette-page { max-width: 1260px; min-height: calc(100vh - 90px); margin: 0 auto; padding: clamp(45px, 7vw, 90px) clamp(22px, 6vw, 80px); }
+        .palette-page-layout { display: grid; grid-template-columns: minmax(260px, .75fr) minmax(420px, 1.25fr); gap: clamp(40px, 7vw, 90px); align-items: start; }
+        .palette-page-intro { position: sticky; top: 130px; }
+        .palette-page-intro h1 { margin: 0; font: clamp(38px, 5vw, 68px)/1.02 'Playfair Display', Georgia, serif; font-weight: 400; letter-spacing: -.025em; }
+        .palette-page-intro > p:last-child { margin: 25px 0 0; color: #4c463e; font: 16px/1.75 Georgia, serif; }
+        .palette-page-card { min-width: 0; }
+        .related-palettes { margin-top: clamp(55px, 8vw, 100px); padding-top: 42px; border-top: 1px solid var(--line); }
+        .related-head h2 { margin: 0; font: 30px 'Playfair Display', Georgia, serif; font-weight: 400; }
+        .related-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 22px; }
+        .related-card { display: flex; min-height: 150px; flex-direction: column; padding: 19px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; background: rgba(239,233,221,.7); }
+        .related-card:hover { border-color: var(--accent); }
+        .related-index { color: var(--muted); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; }
+        .related-card strong { margin: 12px 0 22px; font: 18px/1.25 'Playfair Display', Georgia, serif; font-weight: 500; }
+        .related-strip { display: flex; height: 22px; margin-top: auto; }
+        .related-strip i { display: block; }
+        .palette-pagination { display: flex; justify-content: space-between; gap: 20px; margin-top: 34px; padding-top: 25px; border-top: 1px solid var(--line); }
+        .palette-pagination a { color: var(--muted); font-size: 9px; letter-spacing: .15em; text-decoration: none; text-transform: uppercase; }
+        .palette-pagination a:hover { color: var(--accent); }
 
         .more-row { display: flex; justify-content: center; padding: 38px 0 4px; }
         .more-button { background: none; border: 1px solid var(--line); color: var(--ink); font: 10px 'DM Sans', sans-serif; letter-spacing: .18em; text-transform: uppercase; padding: 14px 30px; cursor: pointer; transition: background .2s ease; }
@@ -442,6 +608,9 @@ export default function App() {
           .today-note { text-align: left; }
           .heritage-credit { grid-template-columns: 1fr; }
           .heritage-credit-block + .heritage-credit-block { border-left: 0; border-top: 1px solid var(--line); }
+          .palette-page-layout { grid-template-columns: 1fr; }
+          .palette-page-intro { position: static; }
+          .related-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
           .brand-tag { display: none; }
@@ -462,7 +631,9 @@ export default function App() {
         }
       `}</style>
 
-      {window.location.pathname === "/history" ? (
+      {palettePage ? (
+        <PalettePage palette={palettePage} onCopy={copy} copied={copied} />
+      ) : window.location.pathname === "/history" ? (
         <HeritagePage />
       ) : (
         <>
