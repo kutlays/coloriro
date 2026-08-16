@@ -346,9 +346,14 @@ export default function App() {
   const [copied, setCopied] = useState(null);
   const [shown, setShown] = useState(PAGE);
   const [todayLookIndex, setTodayLookIndex] = useState(0);
+  const [todayAgeGroup, setTodayAgeGroup] = useState("youngAdult");
   const today = dailyCombination();
   const todayLook = LOOKS[today.palette.plate];
-  const todayLookOptions = todayLook?.variants || [todayLook?.pair].filter(Boolean);
+  const todayAgeGroups = todayLook?.ageGroups;
+  const selectedAgeGroup = todayAgeGroups?.[todayAgeGroup];
+  const todayLookOptions = selectedAgeGroup?.images
+    || todayLook?.variants
+    || [todayLook?.pair].filter(Boolean);
   const todayLookImage = todayLookOptions[todayLookIndex] || todayLook?.pair;
   const palettePlate = palettePlateFromPath(window.location.pathname);
   const palettePage = palettePlate
@@ -366,8 +371,13 @@ export default function App() {
   }, [season]);
 
   useEffect(() => {
+    setTodayAgeGroup("youngAdult");
     setTodayLookIndex(0);
   }, [today.palette.plate]);
+
+  useEffect(() => {
+    setTodayLookIndex(0);
+  }, [todayAgeGroup]);
 
   const copy = async (hex) => {
     try {
@@ -513,6 +523,12 @@ export default function App() {
         .today-title { margin: 0; font: 31px 'Playfair Display', Georgia, serif; font-weight: 400; }
         .today-note { max-width: 310px; margin: 0; color: var(--muted); font: 12px/1.6 Georgia, serif; text-align: right; }
         .today-card { max-width: 760px; }
+        .today-age-controls { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin: 12px 0; padding: 15px 16px; border: 1px solid rgba(38,34,29,.12); background: rgba(232,223,208,.45); }
+        .today-age-copy { min-width: 150px; }
+        .today-age-options { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+        .today-age-button { border: 1px solid var(--line); background: rgba(243,238,228,.7); color: var(--muted); padding: 9px 12px; cursor: pointer; font: 9px 'DM Sans', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+        .today-age-button span { display: block; margin-top: 3px; font-size: 7px; letter-spacing: .08em; }
+        .today-age-button.active { border-color: var(--accent); background: var(--accent); color: var(--paper); }
         .today-look-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 12px; padding: 14px 16px; border: 1px solid rgba(38,34,29,.12); background: rgba(255,255,255,.22); }
         .today-look-kicker { margin: 0 0 4px; color: var(--accent); font-size: 8px; letter-spacing: .18em; text-transform: uppercase; }
         .today-look-note { margin: 0; color: var(--muted); font: 12px/1.45 Georgia, serif; }
@@ -606,6 +622,8 @@ export default function App() {
           .card-visuals { height: 290px; }
           .today-head { align-items: start; flex-direction: column; gap: 9px; }
           .today-note { text-align: left; }
+          .today-age-controls { align-items: stretch; flex-direction: column; }
+          .today-age-options { justify-content: flex-start; }
           .heritage-credit { grid-template-columns: 1fr; }
           .heritage-credit-block + .heritage-credit-block { border-left: 0; border-top: 1px solid var(--line); }
           .palette-page-layout { grid-template-columns: 1fr; }
@@ -715,23 +733,50 @@ export default function App() {
                 copied={copied}
                 image={todayLookImage}
               />
+              {todayAgeGroups && (
+                <div className="today-age-controls">
+                  <div className="today-age-copy">
+                    <p className="today-look-kicker">Age perspective</p>
+                    <p className="today-look-note">Same palette, seen across life stages.</p>
+                  </div>
+                  <div className="today-age-options" role="group" aria-label="Choose an age perspective">
+                    {Object.entries(todayAgeGroups).map(([id, group]) => (
+                      <button
+                        className={`today-age-button ${todayAgeGroup === id ? "active" : ""}`}
+                        type="button"
+                        key={id}
+                        aria-pressed={todayAgeGroup === id}
+                        onClick={() => setTodayAgeGroup(id)}
+                      >
+                        {group.label}
+                        <span>{group.range}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="today-look-controls" aria-live="polite">
                 <div>
                   <p className="today-look-kicker">
-                    Photographic outfit {todayLookIndex + 1} of {todayLookOptions.length}
+                    {selectedAgeGroup
+                      ? `${selectedAgeGroup.label} · outfit ${todayLookIndex + 1} of ${todayLookOptions.length}`
+                      : `Photographic outfit ${todayLookIndex + 1} of ${todayLookOptions.length}`}
                   </p>
                   <p className="today-look-note">
-                    The models change clothes; today&apos;s palette stays the same.
+                    {todayLookOptions.length > 1
+                      ? "The models change clothes; today’s palette stays the same."
+                      : "The life stage changes; today’s palette stays the same."}
                   </p>
                 </div>
-                <button
-                  className="today-look-button"
-                  type="button"
-                  onClick={randomiseTodayLook}
-                  disabled={todayLookOptions.length < 2}
-                >
-                  Try another outfit
-                </button>
+                {todayLookOptions.length > 1 && (
+                  <button
+                    className="today-look-button"
+                    type="button"
+                    onClick={randomiseTodayLook}
+                  >
+                    Try another outfit
+                  </button>
+                )}
               </div>
             </div>
           </section>
